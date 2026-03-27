@@ -9,7 +9,7 @@ abstract class PollRepository {
   Future<String> createPoll({
     required String title,
     required String creatorId,
-    required List<String> optionTextst,
+    required List<String> optionTexts,
   });
   Future<Poll?> getPoll(String pollId);
   Future<void> deletePoll(String pollId);
