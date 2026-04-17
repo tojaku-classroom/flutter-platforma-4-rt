@@ -48,15 +48,36 @@ class FirestoreVoteRepository implements VoteRepository {
     required String pollId,
     required String newOptionId,
     required String userId,
-  }) {
-    // TODO: implement changeVote
-    throw UnimplementedError();
+  }) async {
+    final existingVote = await getUserVote(pollId, userId);
+    if (existingVote == null) {
+      throw Exception('No existing vote found for this user');
+    }
+
+    final oldOptionId = existingVote.optionId;
+    if (oldOptionId == newOptionId) return;
+
+    await _votesCollection.doc(existingVote.id).update({
+      'optionId': newOptionId,
+      'votedAt': DateTime.now().toIso8601String(),
+    });
+
+    await _pollRepository.decrementOptionVoteCount(pollId, oldOptionId);
+    await _pollRepository.incrementOptionVoteCount(pollId, newOptionId);
   }
 
   @override
-  Future<Vote?> getUserVote(String pollId, String userId) {
-    // TODO: implement getUserVote
-    throw UnimplementedError();
+  Future<Vote?> getUserVote(String pollId, String userId) async {
+    final querySnapshot = await _votesCollection
+        .where('pollId', isEqualTo: pollId)
+        .where('userId', isEqualTo: userId)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) return null;
+
+    final doc = querySnapshot.docs.first;
+    return Vote.fromJson(doc.data() as Map<String, dynamic>, doc.id);
   }
 
   @override
@@ -71,7 +92,14 @@ class FirestoreVoteRepository implements VoteRepository {
 
   @override
   Stream<List<Vote>> watchPollVotes(String pollId) {
-    // TODO: implement watchPollVotes
-    throw UnimplementedError();
+    return _votesCollection
+        .where('pollId', isEqualTo: pollId)
+        .orderBy('votedAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return Vote.fromJson(doc.data() as Map<String, dynamic>, doc.id);
+          }).toList();
+        });
   }
 }
