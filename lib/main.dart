@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
+import 'screens/poll_list_screen.dart';
 import 'services/auth_service.dart';
 import 'providers/repository_providers.dart';
 
@@ -43,26 +44,11 @@ class AuthWrapper extends ConsumerWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        return const PollHomePage();
+        return const PollListScreen();
       },
       error: (error, _) =>
           Scaffold(body: Center(child: Text('Auth error: $error'))),
       loading: () => Scaffold(body: Center(child: CircularProgressIndicator())),
-    );
-  }
-}
-
-class PollHomePage extends StatelessWidget {
-  const PollHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('RT Poll'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: const Center(child: Text('Coming soon: Poll list & creation')),
     );
   }
 }
